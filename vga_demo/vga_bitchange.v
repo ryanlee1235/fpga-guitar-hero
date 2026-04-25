@@ -38,6 +38,7 @@ module vga_bitchange(
 
 	wire whiteZone;
 	wire greenMiddleSquare;
+	wire laneLine1, laneLine2, laneLine3;
 	reg reset;
 	reg[9:0] greenMiddleSquareY;
 	reg[49:0] greenMiddleSquareSpeed; 
@@ -54,6 +55,8 @@ module vga_bitchange(
 		rgb = BLACK; // force black if not bright
 	 else if (greenMiddleSquare == 1)
 		rgb = GREEN;
+	else if (laneLine1 || laneLine2 || laneLine3)
+        rgb = WHITE;
 	 else if (whiteZone == 1)
 		rgb = WHITE; // white box
 	 else
