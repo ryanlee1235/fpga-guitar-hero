@@ -37,14 +37,17 @@ module vga_bitchange(
 	//parameter BLUE = 12'b0000_0000_1111;
 
 	wire whiteZone;
-	wire greenMiddleSquare;
+	wire cube0, cube1, cube2, cube3;
 	wire laneLine1, laneLine2, laneLine3;
 	reg reset;
-	reg[9:0] greenMiddleSquareY;
-	reg[49:0] greenMiddleSquareSpeed; 
+	reg[9:0] cubeY0, cubeY1, cubeY2, cubeY3;
+	reg[49:0] cubeSpeed;
 
 	initial begin
-		greenMiddleSquareY = 10'd320;
+		cubeY0 = 10'd35;	
+		cubeY1 = 10'd155;	
+		cubeY2 = 10'd275;	
+		cubeY3 = 10'd395;	
 		score = 15'd0;
 		reset = 1'b0;
 	end
@@ -53,7 +56,7 @@ module vga_bitchange(
 	always@ (*) // paint a white box on a red background
     	if (~bright)
 		rgb = BLACK; // force black if not bright
-	 else if (greenMiddleSquare == 1)
+	 else if (cube0 || cube1 || cube2 || cube3)
 		rgb = GREEN;
 	else if (laneLine1 || laneLine2 || laneLine3)
         rgb = WHITE;
@@ -65,28 +68,33 @@ module vga_bitchange(
 	
 	always@ (posedge clk)
 		begin
-		greenMiddleSquareSpeed = greenMiddleSquareSpeed + 50'd1;
-		if (greenMiddleSquareSpeed >= 50'd500000) //500 thousand
+		cubeSpeed = cubeSpeed + 50'd1;
+		if (cubeSpeed >= 50'd500000)
 			begin
-			greenMiddleSquareY = greenMiddleSquareY + 10'd1;
-			greenMiddleSquareSpeed = 50'd0;
-			if (greenMiddleSquareY == 10'd779)
-				begin
-				greenMiddleSquareY = 10'd0;
-				end
+			cubeY0 = cubeY0 + 10'd1;
+			cubeY1 = cubeY1 + 10'd1;
+			cubeY2 = cubeY2 + 10'd1;
+			cubeY3 = cubeY3 + 10'd1;
+			cubeSpeed = 50'd0;
+			
+			if (cubeY0 >= 10'd515) cubeY0 = 10'd35;
+			if (cubeY1 >= 10'd515) cubeY1 = 10'd35;
+			if (cubeY2 >= 10'd515) cubeY2 = 10'd35;
+			if (cubeY3 >= 10'd515) cubeY3 = 10'd35;
 			end
 		end
 
-	always@ (posedge clk)
-		if ((reset == 1'b0) && (button == 1'b1) && (hCount >= 10'd144) && (hCount <= 10'd784) && (greenMiddleSquareY >= 10'd400) && (greenMiddleSquareY <= 10'd475))
-			begin
-			score = score + 16'd1;
-			reset = 1'b1;
-			end
-		else if (greenMiddleSquareY <= 10'd20)
-			begin
-			reset = 1'b0;
-			end
+	// score logic
+	// always@ (posedge clk)
+	// 	if ((reset == 1'b0) && (button == 1'b1) && (hCount >= 10'd144) && (hCount <= 10'd784) && (greenMiddleSquareY >= 10'd400) && (greenMiddleSquareY <= 10'd475))
+	// 		begin
+	// 		score = score + 16'd1;
+	// 		reset = 1'b1;
+	// 		end
+	// 	else if (greenMiddleSquareY <= 10'd20)
+	// 		begin
+	// 		reset = 1'b0;
+	// 		end
 
 	assign whiteZone = ((hCount >= 10'd144) && (hCount <= 10'd784)) && ((vCount >= 10'd400) && (vCount <= 10'd475)) ? 1 : 0;
 	// Dividing lines
@@ -94,7 +102,13 @@ module vga_bitchange(
 	assign laneLine2 = (hCount >= 10'd464) && (hCount <= 10'd465);
 	assign laneLine3 = (hCount >= 10'd624) && (hCount <= 10'd625);
 
-	assign greenMiddleSquare = ((hCount >= 10'd340) && (hCount < 10'd380)) &&
-				   ((vCount >= greenMiddleSquareY) && (vCount <= greenMiddleSquareY + 10'd40)) ? 1 : 0;
+	assign cube0 = (hCount >= 10'd224) && (hCount <= 10'd264) &&
+               (vCount >= cubeY0)  && (vCount <= cubeY0 + 10'd40);
+	assign cube1 = (hCount >= 10'd384) && (hCount <= 10'd424) &&
+				(vCount >= cubeY1)  && (vCount <= cubeY1 + 10'd40);
+	assign cube2 = (hCount >= 10'd544) && (hCount <= 10'd584) &&
+				(vCount >= cubeY2)  && (vCount <= cubeY2 + 10'd40);
+	assign cube3 = (hCount >= 10'd704) && (hCount <= 10'd744) &&
+				(vCount >= cubeY3)  && (vCount <= cubeY3 + 10'd40);
 	
 endmodule
