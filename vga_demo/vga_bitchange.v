@@ -86,6 +86,10 @@ module vga_bitchange(
 			end
 
 	assign whiteZone = ((hCount >= 10'd144) && (hCount <= 10'd784)) && ((vCount >= 10'd400) && (vCount <= 10'd475)) ? 1 : 0;
+	// Dividing lines
+	assign laneLine1 = (hCount >= 10'd304) && (hCount <= 10'd305);
+	assign laneLine2 = (hCount >= 10'd464) && (hCount <= 10'd465);
+	assign laneLine3 = (hCount >= 10'd624) && (hCount <= 10'd625);
 
 	assign greenMiddleSquare = ((hCount >= 10'd340) && (hCount < 10'd380)) &&
 				   ((vCount >= greenMiddleSquareY) && (vCount <= greenMiddleSquareY + 10'd40)) ? 1 : 0;
