@@ -32,9 +32,10 @@ module vga_bitchange(
 	
 	parameter BLACK = 12'b0000_0000_0000;
 	parameter WHITE = 12'b1111_1111_1111;
-	parameter RED   = 12'b1111_0000_0000;
-	parameter GREEN = 12'b0000_1111_0000;
-	//parameter BLUE = 12'b0000_0000_1111;
+	parameter RED    = 12'b1111_0000_0000;
+	parameter GREEN  = 12'b0000_1111_0000;
+	parameter BLUE   = 12'b0000_0000_1111;
+	parameter YELLOW = 12'b1111_1111_0000;
 
 	wire whiteZone;
 	wire cube0, cube1, cube2, cube3;
@@ -55,15 +56,21 @@ module vga_bitchange(
 	
 	always@ (*) // paint a white box on a red background
     	if (~bright)
-		rgb = BLACK; // force black if not bright
-	 else if (cube0 || cube1 || cube2 || cube3)
-		rgb = GREEN;
-	else if (laneLine1 || laneLine2 || laneLine3)
-        rgb = WHITE;
-	 else if (whiteZone == 1)
-		rgb = WHITE; // white box
-	 else
-		rgb = RED; // background color
+			rgb = BLACK; // force black if not bright
+	    else if (cube0)
+			rgb = GREEN;
+		else if (cube1)
+			rgb = RED;
+		else if (cube2)
+			rgb = YELLOW;
+		else if (cube3)
+			rgb = BLUE;
+		else if (laneLine1 || laneLine2 || laneLine3)
+			rgb = WHITE;
+		else if (whiteZone == 1)
+			rgb = WHITE; // white box
+		else
+			rgb = BLACK; // background color
 
 	
 	always@ (posedge clk)
@@ -77,10 +84,10 @@ module vga_bitchange(
 			cubeY3 = cubeY3 + 10'd1;
 			cubeSpeed = 50'd0;
 			
-			if (cubeY0 >= 10'd515) cubeY0 = 10'd35;
-			if (cubeY1 >= 10'd515) cubeY1 = 10'd35;
-			if (cubeY2 >= 10'd515) cubeY2 = 10'd35;
-			if (cubeY3 >= 10'd515) cubeY3 = 10'd35;
+			if (cubeY0 >= 10'd515) cubeY0 = 10'd0;
+			if (cubeY1 >= 10'd515) cubeY1 = 10'd0;
+			if (cubeY2 >= 10'd515) cubeY2 = 10'd0;
+			if (cubeY3 >= 10'd515) cubeY3 = 10'd0;
 			end
 		end
 
@@ -102,13 +109,13 @@ module vga_bitchange(
 	assign laneLine2 = (hCount >= 10'd464) && (hCount <= 10'd465);
 	assign laneLine3 = (hCount >= 10'd624) && (hCount <= 10'd625);
 
-	assign cube0 = (hCount >= 10'd224) && (hCount <= 10'd264) &&
+	assign cube0 = (hCount >= 10'd204) && (hCount <= 10'd244) &&
                (vCount >= cubeY0)  && (vCount <= cubeY0 + 10'd40);
-	assign cube1 = (hCount >= 10'd384) && (hCount <= 10'd424) &&
+	assign cube1 = (hCount >= 10'd364) && (hCount <= 10'd404) &&
 				(vCount >= cubeY1)  && (vCount <= cubeY1 + 10'd40);
-	assign cube2 = (hCount >= 10'd544) && (hCount <= 10'd584) &&
+	assign cube2 = (hCount >= 10'd524) && (hCount <= 10'd564) &&
 				(vCount >= cubeY2)  && (vCount <= cubeY2 + 10'd40);
-	assign cube3 = (hCount >= 10'd704) && (hCount <= 10'd744) &&
+	assign cube3 = (hCount >= 10'd684) && (hCount <= 10'd724) &&
 				(vCount >= cubeY3)  && (vCount <= cubeY3 + 10'd40);
 	
 endmodule
