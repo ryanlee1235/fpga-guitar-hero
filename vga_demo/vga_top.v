@@ -27,13 +27,13 @@ module vga_top(
 	output An0, An1, An2, An3, An4, An5, An6, An7,
 	output Ca, Cb, Cc, Cd, Ce, Cf, Cg, Dp,
 	
-	output QuadSpiFlashCS
+	output QuadSpiFlashCS,
 
 	// For audio port
-	output AUD_PWM 
+	output AUD_PWM,
 	output AUD_SD
 
-	);
+);
 	
 	wire bright;
 	wire[9:0] hc, vc;
