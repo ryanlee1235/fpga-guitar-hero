@@ -18,6 +18,8 @@ module vga_top(
 	input BtnL,
 	input BtnD,
 	input BtnR,
+	// UART compatibaility
+	input UART_TXD_IN,
 	
 	//VGA signal
 	output hSync, vSync,
@@ -67,7 +69,17 @@ module vga_top(
 		.audio_out(audio_signal)
 	);
 
-	assign AUD_PWM = audio_signal;
+	assign AUD_PWM = uart_data[0]; // temporary change
 	assign AUD_SD = 1'b1;  // turn on amplifier
+
+	wire [7:0] uart_data;
+	wire uart_valid;
+
+	uart_rx uart_inst (
+		.clk(CLK100MHZ),
+		.rx(UART_TXD_IN),
+		.data(uart_data),
+		.valid(uart_valid)
+	);
 
 endmodule
