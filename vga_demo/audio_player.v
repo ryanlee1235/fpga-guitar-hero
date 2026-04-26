@@ -1,6 +1,11 @@
 module audio_player (
-    input wire clk,          // 100 MHz
+    input wire clk,
     input wire reset,
+
+    input  wire [15:0] fifo_dout,
+    input  wire        fifo_empty,
+    output reg         fifo_rd_en,
+
     output wire audio_out
 );
 
@@ -25,25 +30,20 @@ module audio_player (
     end
 
     // ROM address
-    reg [31:0] addr = 0;
-    wire [11:0] sample;
-
-    parameter MAX_ADDR = 66150;
+    reg [15:0] sample = 16'd0;
 
     always @(posedge clk) begin
-        if (reset)
-            addr <= 0;
-        else if (sample_tick) begin
-            if (addr < MAX_ADDR)
-                addr <= addr + 1;
+        fifo_rd_en <= 0;
+
+        if (sample_tick) begin
+            if (!fifo_empty) begin
+                sample <= fifo_dout;
+                fifo_rd_en <= 1;
+            end else begin
+                sample <= 16'd0;  // silence if empty
+            end
         end
     end
-
-    // ROM
-    audio_rom rom (
-        .addr(addr),
-        .data(sample)
-    );
 
     // PWM
     pwm_audio pwm (

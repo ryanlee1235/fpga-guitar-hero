@@ -52,6 +52,30 @@ module vga_top(
 	vga_bitchange vbc(.clk(ClkPort), .bright(bright), .btnL(BtnL), .btnD(BtnD), .btnU(BtnU), .btnR(BtnR), .hCount(hc), .vCount(vc), .rgb(rgb), .score(score), .comboCount(comboCount), .multiplier(multiplier));
 	counter cnt(.clk(ClkPort), .displayNumber(score), .multiplier(multiplier), .anode(anode), .ssdOut(ssdOut));
 	
+	wire [15:0] fifo_dout;
+	wire fifo_empty;
+	wire fifo_full;
+	wire fifo_rd_en;
+
+	// FIFO signals
+	wire [7:0] fifo_din;
+	wire fifo_wr_en;
+
+	// FIFO instance
+	fifo_generator_0 fifo_inst (
+		.clk(ClkPort),
+		.srst(BtnC),
+
+		.din(uart_data),
+		.wr_en(uart_valid),
+
+		.rd_en(fifo_rd_en),
+		.dout(fifo_dout),
+
+		.empty(fifo_empty),
+		.full(fifo_full)
+	);
+
 	assign Dp = 1;
 	assign {Ca, Cb, Cc, Cd, Ce, Cf, Cg} = ssdOut[6 : 0];
     assign {An7, An6, An5, An4, An3, An2, An1, An0} = anode;
@@ -68,15 +92,20 @@ module vga_top(
 
 	audio_player player (
 		.clk(ClkPort),
-		.reset(BtnC),        // use center button as reset
+		.reset(BtnC),
+
+		.fifo_dout(fifo_dout),
+		.fifo_empty(fifo_empty),
+		.fifo_rd_en(fifo_rd_en),
+
 		.audio_out(audio_signal)
 	);
 
-	assign AUD_PWM = uart_data[0]; // temporary change
-	assign AUD_SD = 1'b1;  // turn on amplifier
+	assign AUD_PWM = audio_signal;
+	assign AUD_SD  = 1'b1;
 
-	assign Ld0 = uart_valid;
-	assign Ld1 = uart_data[0];
+	assign Ld0 = UART_TXD_IN;  // raw signal
+	assign Ld1 = uart_valid;   // decoded byte
 
 	wire [7:0] uart_data;
 	wire uart_valid;
