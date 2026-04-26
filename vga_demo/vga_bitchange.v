@@ -27,7 +27,9 @@ module vga_bitchange(
 	input btnL, btnD, btnU, btnR,
 	input [9:0] hCount, vCount,
 	output reg [11:0] rgb,
-	output reg [15:0] score
+	output reg [15:0] score,
+	output reg [15:0] comboCount,
+    output reg [3:0]  multiplier
    );
 	
 	parameter BLACK = 12'b0000_0000_0000;
@@ -49,7 +51,9 @@ module vga_bitchange(
 		cubeY1 = 10'd155;	
 		cubeY2 = 10'd275;	
 		cubeY3 = 10'd395;	
-		score = 15'd0;
+		comboCount = 16'd0;
+    	multiplier = 4'd1;
+		score = 16'd0;
 		reset = 1'b0;
 	end
 	
@@ -75,7 +79,8 @@ module vga_bitchange(
 	always @(posedge clk) begin
 		cubeSpeed = cubeSpeed + 50'd1;
 		if (btnL && cubeY0 >= 10'd400 && cubeY0 <= 10'd435) begin
-			score = score + 1;
+			score = score + multiplier;
+			comboCount = comboCount + 1;
 			cubeY0 = 10'd0;
 		end
 		else if (cubeSpeed >= 50'd500000) begin
@@ -84,7 +89,8 @@ module vga_bitchange(
 		end
 
 		if (btnD && cubeY1 >= 10'd400 && cubeY1 <= 10'd435) begin
-			score = score + 1;
+			score = score + multiplier;
+			comboCount = comboCount + 1;
 			cubeY1 = 10'd0;
 		end
 		else if (cubeSpeed >= 50'd500000) begin
@@ -93,7 +99,8 @@ module vga_bitchange(
 		end
 
 		if (btnU && cubeY2 >= 10'd400 && cubeY2 <= 10'd435) begin
-			score = score + 1;
+			score = score + multiplier;
+			comboCount = comboCount + 1;
 			cubeY2 = 10'd0;
 		end
 		else if (cubeSpeed >= 50'd500000) begin
@@ -102,7 +109,8 @@ module vga_bitchange(
 		end
 
 		if (btnR && cubeY3 >= 10'd400 && cubeY3 <= 10'd435) begin
-			score = score + 1;
+			score = score + multiplier;
+			comboCount = comboCount + 1;
 			cubeY3 = 10'd0;
 		end
 		else if (cubeSpeed >= 50'd500000) begin
@@ -110,8 +118,17 @@ module vga_bitchange(
 			if (cubeY3 >= 10'd515) cubeY3 = 10'd0;
 		end
 
-		if (cubeSpeed >= 50'd500000) cubeSpeed = 50'd0;
+		if (cubeSpeed >= 50'd500000) 
+			cubeSpeed = 50'd0;
 
+		if (comboCount >= 16'd30) 
+			multiplier = 4'd4;
+		else if (comboCount >= 16'd20) 
+			multiplier = 4'd3;
+		else if (comboCount >= 16'd10) 
+			multiplier = 4'd2;
+		else                           
+			multiplier = 4'd1;
 	end
 
 	assign whiteZone = ((hCount >= 10'd144) && (hCount <= 10'd784)) && ((vCount >= 10'd400) && (vCount <= 10'd475)) ? 1 : 0;
