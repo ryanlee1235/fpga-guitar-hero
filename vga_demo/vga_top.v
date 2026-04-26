@@ -28,6 +28,11 @@ module vga_top(
 	output Ca, Cb, Cc, Cd, Ce, Cf, Cg, Dp,
 	
 	output QuadSpiFlashCS
+
+	// For audio port
+	output AUD_PWM 
+	output AUD_SD
+
 	);
 	
 	wire bright;
@@ -53,5 +58,16 @@ module vga_top(
 	
 	// disable memory port
 	assign {QuadSpiFlashCS} = 1'b1;
+
+	wire audio_signal;
+
+	audio_player player (
+		.clk(ClkPort),
+		.reset(BtnC),        // use center button as reset
+		.audio_out(audio_signal)
+	);
+
+	assign AUD_PWM = audio_signal;
+	assign AUD_SD = 1'b1;  // turn on amplifier
 
 endmodule
