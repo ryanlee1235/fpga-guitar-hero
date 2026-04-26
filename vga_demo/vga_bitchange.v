@@ -72,42 +72,46 @@ module vga_bitchange(
 		else
 			rgb = BLACK; // background color
 
-	
-	always@ (posedge clk)
-		begin
-		cubeSpeed = cubeSpeed + 50'd1;
-		if (cubeSpeed >= 50'd500000)
-			begin
-			cubeY0 = cubeY0 + 10'd1;
-			cubeY1 = cubeY1 + 10'd1;
-			cubeY2 = cubeY2 + 10'd1;
-			cubeY3 = cubeY3 + 10'd1;
-			cubeSpeed = 50'd0;
-			
-			if (cubeY0 >= 10'd515) cubeY0 = 10'd0;
-			if (cubeY1 >= 10'd515) cubeY1 = 10'd0;
-			if (cubeY2 >= 10'd515) cubeY2 = 10'd0;
-			if (cubeY3 >= 10'd515) cubeY3 = 10'd0;
-			end
-		end
-
 	always @(posedge clk) begin
+		cubeSpeed = cubeSpeed + 50'd1;
 		if (btnL && cubeY0 >= 10'd400 && cubeY0 <= 10'd435) begin
 			score = score + 1;
 			cubeY0 = 10'd0;
 		end
+		else if (cubeSpeed >= 50'd500000) begin
+			cubeY0 = cubeY0 + 10'd1;
+			if (cubeY0 >= 10'd515) cubeY0 = 10'd0;
+		end
+
 		if (btnD && cubeY1 >= 10'd400 && cubeY1 <= 10'd435) begin
 			score = score + 1;
 			cubeY1 = 10'd0;
 		end
+		else if (cubeSpeed >= 50'd500000) begin
+			cubeY1 = cubeY1 + 10'd1;
+			if (cubeY1 >= 10'd515) cubeY1 = 10'd0;
+		end
+
 		if (btnU && cubeY2 >= 10'd400 && cubeY2 <= 10'd435) begin
 			score = score + 1;
 			cubeY2 = 10'd0;
 		end
+		else if (cubeSpeed >= 50'd500000) begin
+			cubeY2 = cubeY2 + 10'd1;
+			if (cubeY2 >= 10'd515) cubeY2 = 10'd0;
+		end
+
 		if (btnR && cubeY3 >= 10'd400 && cubeY3 <= 10'd435) begin
 			score = score + 1;
 			cubeY3 = 10'd0;
 		end
+		else if (cubeSpeed >= 50'd500000) begin
+			cubeY3 = cubeY3 + 10'd1;
+			if (cubeY3 >= 10'd515) cubeY3 = 10'd0;
+		end
+
+		if (cubeSpeed >= 50'd500000) cubeSpeed = 50'd0;
+
 	end
 
 	assign whiteZone = ((hCount >= 10'd144) && (hCount <= 10'd784)) && ((vCount >= 10'd400) && (vCount <= 10'd475)) ? 1 : 0;
