@@ -15,6 +15,9 @@ module vga_top(
 	input ClkPort,
 	input BtnC,
 	input BtnU,
+	input BtnL,
+	input BtnD,
+	input BtnR,
 	
 	//VGA signal
 	output hSync, vSync,
@@ -34,7 +37,7 @@ module vga_top(
 	wire [3:0] anode;
 	wire [11:0] rgb;
 	display_controller dc(.clk(ClkPort), .hSync(hSync), .vSync(vSync), .bright(bright), .hCount(hc), .vCount(vc));
-	vga_bitchange vbc(.clk(ClkPort), .bright(bright), .button(BtnU), .hCount(hc), .vCount(vc), .rgb(rgb), .score(score));
+	vga_bitchange vbc(.clk(ClkPort), .bright(bright), .btnL(BtnL), .btnD(BtnD), .btnU(BtnU), .btnR(BtnR), .hCount(hc), .vCount(vc), .rgb(rgb), .score(score));
 	counter cnt(.clk(ClkPort), .displayNumber(score), .anode(anode), .ssdOut(ssdOut));
 	
 	assign Dp = 1;

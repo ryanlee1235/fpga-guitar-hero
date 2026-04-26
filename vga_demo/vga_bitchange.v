@@ -24,7 +24,7 @@
 module vga_bitchange(
 	input clk,
 	input bright,
-	input button,
+	input btnL, btnD, btnU, btnR,
 	input [9:0] hCount, vCount,
 	output reg [11:0] rgb,
 	output reg [15:0] score
@@ -91,17 +91,24 @@ module vga_bitchange(
 			end
 		end
 
-	// score logic
-	// always@ (posedge clk)
-	// 	if ((reset == 1'b0) && (button == 1'b1) && (hCount >= 10'd144) && (hCount <= 10'd784) && (greenMiddleSquareY >= 10'd400) && (greenMiddleSquareY <= 10'd475))
-	// 		begin
-	// 		score = score + 16'd1;
-	// 		reset = 1'b1;
-	// 		end
-	// 	else if (greenMiddleSquareY <= 10'd20)
-	// 		begin
-	// 		reset = 1'b0;
-	// 		end
+	always @(posedge clk) begin
+		if (btnL && cubeY0 >= 10'd400 && cubeY0 <= 10'd435) begin
+			score = score + 1;
+			cubeY0 = 10'd0;
+		end
+		if (btnD && cubeY1 >= 10'd400 && cubeY1 <= 10'd435) begin
+			score = score + 1;
+			cubeY1 = 10'd0;
+		end
+		if (btnU && cubeY2 >= 10'd400 && cubeY2 <= 10'd435) begin
+			score = score + 1;
+			cubeY2 = 10'd0;
+		end
+		if (btnR && cubeY3 >= 10'd400 && cubeY3 <= 10'd435) begin
+			score = score + 1;
+			cubeY3 = 10'd0;
+		end
+	end
 
 	assign whiteZone = ((hCount >= 10'd144) && (hCount <= 10'd784)) && ((vCount >= 10'd400) && (vCount <= 10'd475)) ? 1 : 0;
 	// Dividing lines
