@@ -48,8 +48,10 @@ module vga_top(
 	wire [6:0] ssdOut;
 	wire [7:0] anode;
 	wire [11:0] rgb;
+	wire [3:0] missCount;
+	wire gameOver;
 	display_controller dc(.clk(ClkPort), .hSync(hSync), .vSync(vSync), .bright(bright), .hCount(hc), .vCount(vc));
-	vga_bitchange vbc(.clk(ClkPort), .bright(bright), .btnL(BtnL), .btnD(BtnD), .btnU(BtnU), .btnR(BtnR), .hCount(hc), .vCount(vc), .rgb(rgb), .score(score), .comboCount(comboCount), .multiplier(multiplier));
+	vga_bitchange vbc(.clk(ClkPort), .bright(bright), .btnL(BtnL), .btnD(BtnD), .btnU(BtnU), .btnR(BtnR), .hCount(hc), .vCount(vc), .rgb(rgb), .score(score), .comboCount(comboCount), .multiplier(multiplier), .missCount(missCount), .gameOver(gameOver));
 	counter cnt(.clk(ClkPort), .displayNumber(score), .multiplier(multiplier), .anode(anode), .ssdOut(ssdOut));
 	
 	wire [15:0] fifo_dout;

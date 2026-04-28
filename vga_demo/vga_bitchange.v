@@ -29,7 +29,9 @@ module vga_bitchange(
 	output reg [11:0] rgb,
 	output reg [15:0] score,
 	output reg [15:0] comboCount,
-    output reg [3:0]  multiplier
+    output reg [3:0]  multiplier,
+	output reg [3:0] missCount,
+	output reg gameOver
    );
 	
 	parameter BLACK = 12'b0000_0000_0000;
@@ -55,15 +57,19 @@ module vga_bitchange(
     	multiplier = 4'd1;
 		score = 16'd0;
 		reset = 1'b0;
+		missCount = 4'd0;
+		gameOver = 1'b0;
 	end
 	
 	
 	always@ (*) // paint a white box on a red background
     	if (~bright)
 			rgb = BLACK; // force black if not bright
+		else if (gameOver)
+			rgb = RED;
 	    else if (cube0)
 			rgb = GREEN;
-		else if (cube1)
+		else if (cube1) 
 			rgb = RED;
 		else if (cube2)
 			rgb = YELLOW;
@@ -77,58 +83,104 @@ module vga_bitchange(
 			rgb = BLACK; // background color
 
 	always @(posedge clk) begin
-		cubeSpeed = cubeSpeed + 50'd1;
-		if (btnL && cubeY0 >= 10'd400 && cubeY0 <= 10'd435) begin
-			score = score + multiplier;
-			comboCount = comboCount + 1;
-			cubeY0 = 10'd0;
-		end
-		else if (cubeSpeed >= 50'd500000) begin
-			cubeY0 = cubeY0 + 10'd1;
-			if (cubeY0 >= 10'd515) cubeY0 = 10'd0;
-		end
+		if (!gameOver) begin
+			cubeSpeed = cubeSpeed + 50'd1;
+			if (btnL && cubeY0 >= 10'd400 && cubeY0 <= 10'd435) begin
+				score = score + multiplier;
+				comboCount = comboCount + 1;
+				cubeY0 = 10'd0;
+			end
+			else if (btnL) begin
+				// pressed when note NOT in white zone
+				comboCount = 16'd0;
+				missCount = missCount + 1;
+			end
+			else if (cubeSpeed >= 50'd500000) begin
+				cubeY0 = cubeY0 + 10'd1;
+				if (cubeY0 == 10'd476) begin
+					// missed cube
+					comboCount = 16'd0;
+					missCount = missCount + 1;
+				end
+				if (cubeY0 >= 10'd515) cubeY0 = 10'd0;
+			end
 
-		if (btnD && cubeY1 >= 10'd400 && cubeY1 <= 10'd435) begin
-			score = score + multiplier;
-			comboCount = comboCount + 1;
-			cubeY1 = 10'd0;
-		end
-		else if (cubeSpeed >= 50'd500000) begin
-			cubeY1 = cubeY1 + 10'd1;
-			if (cubeY1 >= 10'd515) cubeY1 = 10'd0;
-		end
+			if (btnD && cubeY1 >= 10'd400 && cubeY1 <= 10'd435) begin
+				score = score + multiplier;
+				comboCount = comboCount + 1;
+				cubeY1 = 10'd0;
+			end
+			else if (btnD) begin
+				// pressed when note NOT in white zone
+				comboCount = 16'd0;
+				missCount = missCount + 1;
+			end
+			else if (cubeSpeed >= 50'd500000) begin
+				cubeY1 = cubeY1 + 10'd1;
+				if (cubeY1 == 10'd476) begin
+					// missed cube
+					comboCount = 16'd0;
+					missCount = missCount + 1;
+				end
+				if (cubeY1 >= 10'd515) cubeY1 = 10'd0;
+			end
 
-		if (btnU && cubeY2 >= 10'd400 && cubeY2 <= 10'd435) begin
-			score = score + multiplier;
-			comboCount = comboCount + 1;
-			cubeY2 = 10'd0;
-		end
-		else if (cubeSpeed >= 50'd500000) begin
-			cubeY2 = cubeY2 + 10'd1;
-			if (cubeY2 >= 10'd515) cubeY2 = 10'd0;
-		end
+			if (btnU && cubeY2 >= 10'd400 && cubeY2 <= 10'd435) begin
+				score = score + multiplier;
+				comboCount = comboCount + 1;
+				cubeY2 = 10'd0;
+			end
+			else if (btnU) begin
+				// pressed when note NOT in white zone
+				comboCount = 16'd0;
+				missCount = missCount + 1;
+			end
+			else if (cubeSpeed >= 50'd500000) begin
+				cubeY2 = cubeY2 + 10'd1;
+				if (cubeY2 == 10'd476) begin
+					// missed cube
+					comboCount = 16'd0;
+					missCount = missCount + 1;
+				end
+				if (cubeY2 >= 10'd515) cubeY2 = 10'd0;
+			end
 
-		if (btnR && cubeY3 >= 10'd400 && cubeY3 <= 10'd435) begin
-			score = score + multiplier;
-			comboCount = comboCount + 1;
-			cubeY3 = 10'd0;
-		end
-		else if (cubeSpeed >= 50'd500000) begin
-			cubeY3 = cubeY3 + 10'd1;
-			if (cubeY3 >= 10'd515) cubeY3 = 10'd0;
-		end
+			if (btnR && cubeY3 >= 10'd400 && cubeY3 <= 10'd435) begin
+				score = score + multiplier;
+				comboCount = comboCount + 1;
+				cubeY3 = 10'd0;
+			end
+			else if (btnR) begin
+				// pressed when note NOT in white zone
+				comboCount = 16'd0;
+				missCount = missCount + 1;
+			end
+			else if (cubeSpeed >= 50'd500000) begin
+				cubeY3 = cubeY3 + 10'd1;
+				if (cubeY3 == 10'd476) begin
+					// missed cube
+					comboCount = 16'd0;
+					missCount = missCount + 1;
+				end
+				if (cubeY3 >= 10'd515) cubeY3 = 10'd0;
+			end
 
-		if (cubeSpeed >= 50'd500000) 
-			cubeSpeed = 50'd0;
+			if (cubeSpeed >= 50'd500000) 
+				cubeSpeed = 50'd0;
 
-		if (comboCount >= 16'd30) 
-			multiplier = 4'd4;
-		else if (comboCount >= 16'd20) 
-			multiplier = 4'd3;
-		else if (comboCount >= 16'd10) 
-			multiplier = 4'd2;
-		else                           
-			multiplier = 4'd1;
+			if (comboCount >= 16'd30) 
+				multiplier = 4'd4;
+			else if (comboCount >= 16'd20) 
+				multiplier = 4'd3;
+			else if (comboCount >= 16'd10) 
+				multiplier = 4'd2;
+			else                           
+				multiplier = 4'd1;
+			
+			if (missCount >= 10)
+				gameOver = 1'b1;
+		end
+		
 	end
 
 	assign whiteZone = ((hCount >= 10'd144) && (hCount <= 10'd784)) && ((vCount >= 10'd400) && (vCount <= 10'd475)) ? 1 : 0;
@@ -136,7 +188,7 @@ module vga_bitchange(
 	assign laneLine1 = (hCount >= 10'd304) && (hCount <= 10'd305);
 	assign laneLine2 = (hCount >= 10'd464) && (hCount <= 10'd465);
 	assign laneLine3 = (hCount >= 10'd624) && (hCount <= 10'd625);
-
+	// falling notes
 	assign cube0 = (hCount >= 10'd204) && (hCount <= 10'd244) &&
                (vCount >= cubeY0)  && (vCount <= cubeY0 + 10'd40);
 	assign cube1 = (hCount >= 10'd364) && (hCount <= 10'd404) &&
