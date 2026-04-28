@@ -33,7 +33,6 @@ module vga_top(
 	output Ca, Cb, Cc, Cd, Ce, Cf, Cg, Dp,
 	
 	output QuadSpiFlashCS,
-	output QSPI_SCLK,
 	output QSPI_DQ0,
 	input  QSPI_DQ1,
 
@@ -65,6 +64,7 @@ module vga_top(
 	// FIFO signals
 	wire [7:0] fifo_din;
 	wire fifo_wr_en;
+	wire fifo_prog_full;
 
 	// FIFO instance
 	fifo_generator_0 fifo_inst (
@@ -78,6 +78,7 @@ module vga_top(
 		.dout(fifo_dout),
 
 		.empty(fifo_empty),
+		.prog_full(fifo_prog_full),
 		.full(fifo_full)
 	);
 
@@ -106,27 +107,33 @@ module vga_top(
 		.audio_out(audio_signal)
 	);
 
+	// Controls the audio
 	assign AUD_PWM = audio_signal;
 	assign AUD_SD  = 1'b1;
 
+	// Led debugging indicators
 	assign Ld0 = fifo_empty;
-	assign Ld1 = fifo_full;
+	assign Ld1 = flash_valid;
 
+	// SPI stuff
 	wire [7:0] flash_data;
 	wire flash_valid;
+
+	wire spi_clk;
 
 	spi_flash_reader flash_reader (
 		.clk(ClkPort),
 		.reset(BtnC),
 
 		.cs(QuadSpiFlashCS),
-		.sclk(QSPI_SCLK),
+		.spi_clk_out(spi_clk),
 		.mosi(QSPI_DQ0),
 		.miso(QSPI_DQ1),
 
 		.data_out(flash_data),
 		.data_valid(flash_valid),
-		.fifo_full(fifo_full)
+		.fifo_full(fifo_full),
+		.fifo_prog_full(fifo_prog_full)
 	);
 
 	STARTUPE2 startup_inst (
@@ -142,7 +149,7 @@ module vga_top(
 		.USRCCLKO(spi_clk),
 		.USRCCLKTS(1'b0),
 		.USRDONEO(1'b1),
-		.USRDONETS(1'b1)
+		.USRDONETS(1'b0)
 	);
 
 endmodule

@@ -4,6 +4,7 @@ module spi_flash_reader (
 
     // SPI flash interface
     output reg  cs,         // chip select (active low)
+    output wire spi_clk_out,
     // output wire sclk,       // SPI clock
     output reg  mosi,
     input  wire miso,
@@ -11,17 +12,20 @@ module spi_flash_reader (
     // FIFO interface (8-bit write)
     output reg [7:0] data_out,
     output reg       data_valid,
-    input  wire      fifo_full
+    input  wire      fifo_full,
+    input  wire      fifo_prog_full
 );
 
     // Clock divider (to fit in SPI clock)
-    reg [3:0] clk_div = 0;
+    reg [7:0] clk_div = 0;
     always @(posedge clk) begin
         clk_div <= clk_div + 1;
     end
 
-    wire spi_clk = clk_div[3];  // ~6.25 MHz
+    // controls the speed of flow
+    wire spi_clk = clk_div[6];
     // assign sclk = spi_clk;
+    assign spi_clk_out = spi_clk;
 
     reg [7:0] cmd_reg = 8'h03;
 
@@ -35,9 +39,10 @@ module spi_flash_reader (
     localparam CMD   = 1;
     localparam ADDR  = 2;
     localparam READ  = 3;
+    localparam CS_SETUP = 4;
 
     // SPI logic
-    always @(negedge spi_clk or posedge reset) begin
+    always @(posedge spi_clk or posedge reset) begin
         if (reset) begin
             state      <= IDLE;
             cs         <= 1;
@@ -50,55 +55,57 @@ module spi_flash_reader (
 
             case (state)
 
-            // IDLE: wait until FIFO has space
             IDLE: begin
                 cs <= 1;
 
-                if (!fifo_full) begin
-                    cs      <= 0;
+                if (!fifo_prog_full) begin
+                    cs <= 0;
                     bit_cnt <= 0;
-                    state   <= CMD;
+                    state <= CS_SETUP;
                 end
             end
 
-            // Send READ command (0x03)
+            CS_SETUP: begin
+                state <= CMD;
+            end
+
             CMD: begin
                 mosi <= cmd_reg[7 - bit_cnt];
                 bit_cnt <= bit_cnt + 1;
 
                 if (bit_cnt == 7) begin
                     bit_cnt <= 0;
-                    state   <= ADDR;
+                    state <= ADDR;
                 end
             end
 
-            // Send 24-bit address
             ADDR: begin
                 mosi <= addr[23 - bit_cnt];
                 bit_cnt <= bit_cnt + 1;
 
                 if (bit_cnt == 23) begin
                     bit_cnt <= 0;
-                    state   <= READ;
+                    state <= READ;
                 end
             end
 
-            // Continuous read
             READ: begin
-                // Shift in data from MISO
-                shift_reg <= {shift_reg[6:0], miso};
-                bit_cnt   <= bit_cnt + 1;
+                if (bit_cnt == 0)
+                    shift_reg <= 8'd0;
+                else
+                    shift_reg <= {shift_reg[6:0], miso};
+
+                bit_cnt <= bit_cnt + 1;
 
                 if (bit_cnt == 7) begin
-                    data_out   <= shift_reg;
+                    data_out <= {shift_reg[6:0], miso};
                     data_valid <= 1;
-                    addr       <= addr + 1;
-                    bit_cnt    <= 0;
+                    addr <= addr + 1;
+                    bit_cnt <= 0;
                 end
 
-                // Stop if FIFO is full
-                if (fifo_full) begin
-                    cs    <= 1;
+                if (fifo_prog_full) begin
+                    cs <= 1;
                     state <= IDLE;
                 end
             end
@@ -106,5 +113,4 @@ module spi_flash_reader (
             endcase
         end
     end
-
 endmodule
