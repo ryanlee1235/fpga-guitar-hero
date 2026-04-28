@@ -35,12 +35,10 @@ module audio_player (
     always @(posedge clk) begin
         fifo_rd_en <= 0;
 
-        if (sample_tick) begin
-            if (!fifo_empty) begin
+        if (!fifo_empty) begin
+            fifo_rd_en <= 1;
+            if (sample_tick) begin
                 sample <= fifo_dout;
-                fifo_rd_en <= 1;
-            end else begin
-                sample <= 16'd0;  // silence if empty
             end
         end
     end
