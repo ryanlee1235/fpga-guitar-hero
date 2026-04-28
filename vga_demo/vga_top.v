@@ -129,4 +129,20 @@ module vga_top(
 		.fifo_full(fifo_full)
 	);
 
+	STARTUPE2 startup_inst (
+		.CFGCLK(),
+		.CFGMCLK(),
+		.EOS(),
+		.PREQ(),
+		.CLK(1'b0),
+		.GSR(1'b0),
+		.GTS(1'b0),
+		.KEYCLEARB(1'b1),
+		.PACK(1'b0),
+		.USRCCLKO(spi_clk),
+		.USRCCLKTS(1'b0),
+		.USRDONEO(1'b1),
+		.USRDONETS(1'b1)
+	);
+
 endmodule

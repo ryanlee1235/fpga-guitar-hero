@@ -4,7 +4,7 @@ module spi_flash_reader (
 
     // SPI flash interface
     output reg  cs,         // chip select (active low)
-    output wire sclk,       // SPI clock
+    // output wire sclk,       // SPI clock
     output reg  mosi,
     input  wire miso,
 
@@ -21,7 +21,9 @@ module spi_flash_reader (
     end
 
     wire spi_clk = clk_div[3];  // ~6.25 MHz
-    assign sclk = spi_clk;
+    // assign sclk = spi_clk;
+
+    reg [7:0] cmd_reg = 8'h03;
 
     reg [3:0] state = 0;
     reg [5:0] bit_cnt = 0;
@@ -61,7 +63,7 @@ module spi_flash_reader (
 
             // Send READ command (0x03)
             CMD: begin
-                mosi <= 8'h03[7 - bit_cnt];
+                mosi <= cmd_reg[7 - bit_cnt];
                 bit_cnt <= bit_cnt + 1;
 
                 if (bit_cnt == 7) begin

@@ -212,6 +212,3 @@ set_property -dict { PACKAGE_PIN L13   IOSTANDARD LVCMOS33 } [get_ports {QuadSpi
 #set_property -dict { PACKAGE_PIN H14   IOSTANDARD LVCMOS33 } [get_ports {MemOE}];
 #set_property -dict { PACKAGE_PIN R11   IOSTANDARD LVCMOS33 } [get_ports {MemWR}];
 #set_property -dict { PACKAGE_PIN L17   IOSTANDARD LVCMOS33 } [get_ports {RamCS}];
-
-## Adding SPI Clk
-set_property -dict { PACKAGE_PIN E9   IOSTANDARD LVCMOS33 } [get_ports {QSPI_SCLK}];
