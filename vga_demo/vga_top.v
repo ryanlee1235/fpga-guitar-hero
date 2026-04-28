@@ -29,6 +29,7 @@ module vga_top(
 	wire [7:0] anode;
 	wire [11:0] rgb;
     wire gameOver;
+    wire game_running_dbg;
 
 	display_controller dc(.clk(ClkPort), .hSync(hSync), .vSync(vSync), .bright(bright), .hCount(hc), .vCount(vc));
 
@@ -37,7 +38,8 @@ module vga_top(
 		.btnL(BtnL), .btnD(BtnD), .btnU(BtnU), .btnR(BtnR),
 		.hCount(hc), .vCount(vc), .rgb(rgb),
 		.score(score), .comboCount(comboCount), .multiplier(multiplier),
-		.missCount(missCount), .gameOver(gameOver)
+		.missCount(missCount), .gameOver(gameOver),
+		.game_running_dbg(game_running_dbg)
 	);
 
 	counter cnt(.clk(ClkPort), .displayNumber(score), .multiplier(multiplier), .anode(anode), .ssdOut(ssdOut));
@@ -88,7 +90,7 @@ module vga_top(
 	assign vgaR = rgb[11:8];
 	assign vgaG = rgb[7:4];
 	assign vgaB = rgb[3:0];
-	assign Ld0 = fifo_empty;
+	assign Ld0 = game_running_dbg;  // LED on = game started
 	assign Ld1 = flash_valid;
 
 endmodule

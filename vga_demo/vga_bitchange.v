@@ -12,8 +12,11 @@ module vga_bitchange(
     output reg [15:0] comboCount,
     output reg [3:0] multiplier,
     output reg [3:0] missCount,
-    output reg gameOver
+    output reg gameOver,
+    output game_running_dbg
 );
+
+    assign game_running_dbg = game_running;
 
     parameter BLACK = 12'b0000_0000_0000;
     parameter WHITE = 12'b1111_1111_1111;
@@ -53,7 +56,8 @@ module vga_bitchange(
                 if (ms_counter >= MS_DIVIDER - 1) begin
                     ms_counter <= 0;
                     game_time_ms <= game_time_ms + 1;
-                end else
+                end 
+				else
                     ms_counter <= ms_counter + 1;
             end
         end
