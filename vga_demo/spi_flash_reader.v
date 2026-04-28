@@ -17,13 +17,13 @@ module spi_flash_reader (
 );
 
     // Clock divider (to fit in SPI clock)
-    reg [7:0] clk_div = 0;
+    reg [3:0] clk_div = 0;
     always @(posedge clk) begin
         clk_div <= clk_div + 1;
     end
 
     // controls the speed of flow
-    wire spi_clk = clk_div[6];
+    wire spi_clk = clk_div[3];
     // assign sclk = spi_clk;
     assign spi_clk_out = spi_clk;
 
@@ -42,7 +42,7 @@ module spi_flash_reader (
     localparam CS_SETUP = 4;
 
     // SPI logic
-    always @(posedge spi_clk or posedge reset) begin
+    always @(negedge spi_clk or posedge reset) begin
         if (reset) begin
             state      <= IDLE;
             cs         <= 1;
