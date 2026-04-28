@@ -12,8 +12,8 @@ module spi_flash_reader (
     // FIFO interface (8-bit write)
     output reg [7:0] data_out,
     output reg       data_valid,
-    input  wire      fifo_full,
-    input  wire      fifo_prog_full
+    input  wire      fifo_full
+    //input  wire      fifo_prog_full
 );
 
     // Clock divider (to fit in SPI clock)
@@ -42,7 +42,7 @@ module spi_flash_reader (
     localparam CS_SETUP = 4;
 
     // SPI logic
-    always @(negedge spi_clk or posedge reset) begin
+    always @(posedge spi_clk or posedge reset) begin
         if (reset) begin
             state      <= IDLE;
             cs         <= 1;
@@ -58,7 +58,7 @@ module spi_flash_reader (
             IDLE: begin
                 cs <= 1;
 
-                if (!fifo_prog_full) begin
+                if (!fifo_full) begin
                     cs <= 0;
                     bit_cnt <= 0;
                     state <= CS_SETUP;
@@ -90,21 +90,16 @@ module spi_flash_reader (
             end
 
             READ: begin
-                if (bit_cnt == 0)
-                    shift_reg <= 8'd0;
-                else
-                    shift_reg <= {shift_reg[6:0], miso};
-
-                bit_cnt <= bit_cnt + 1;
-
-                if (bit_cnt == 7) begin
-                    data_out <= {shift_reg[6:0], miso};
-                    data_valid <= 1;
-                    addr <= addr + 1;
-                    bit_cnt <= 0;
+                shift_reg <= {miso, shift_reg[7:1]};
+                bit_cnt <= bit_cnt + 1; 
+                if (bit_cnt == 7) begin 
+                    data_out <= shift_reg; 
+                    data_valid <= 1; 
+                    addr <= addr + 1; 
+                    bit_cnt <= 0; 
                 end
 
-                if (fifo_prog_full) begin
+                if (fifo_full) begin
                     cs <= 1;
                     state <= IDLE;
                 end

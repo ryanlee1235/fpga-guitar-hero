@@ -64,7 +64,7 @@ module vga_top(
 	// FIFO signals
 	wire [7:0] fifo_din;
 	wire fifo_wr_en;
-	wire fifo_prog_full;
+	//wire fifo_prog_full;
 
 	// FIFO instance
 	fifo_generator_0 fifo_inst (
@@ -78,7 +78,7 @@ module vga_top(
 		.dout(fifo_dout),
 
 		.empty(fifo_empty),
-		.prog_full(fifo_prog_full),
+		//.prog_full(fifo_prog_full),
 		.full(fifo_full)
 	);
 
@@ -113,7 +113,7 @@ module vga_top(
 
 	// Led debugging indicators
 	assign Ld0 = fifo_empty;
-	assign Ld1 = flash_valid;
+	assign Ld1 = fifo_full;
 
 	// SPI stuff
 	wire [7:0] flash_data;
@@ -132,8 +132,8 @@ module vga_top(
 
 		.data_out(flash_data),
 		.data_valid(flash_valid),
-		.fifo_full(fifo_full),
-		.fifo_prog_full(fifo_prog_full)
+		.fifo_full(fifo_full)
+		// .fifo_prog_full(fifo_prog_full)
 	);
 
 	STARTUPE2 startup_inst (
@@ -149,7 +149,7 @@ module vga_top(
 		.USRCCLKO(spi_clk),
 		.USRCCLKTS(1'b0),
 		.USRDONEO(1'b1),
-		.USRDONETS(1'b0)
+		.USRDONETS(1'b1)
 	);
 
 endmodule
