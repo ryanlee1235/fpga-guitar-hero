@@ -19,7 +19,7 @@ module vga_top(
 	input BtnD,
 	input BtnR,
 	// UART compatibaility
-	input UART_TXD_IN,
+	// input UART_TXD_IN,
 
 	output Ld0,
 	output Ld1,
@@ -33,6 +33,9 @@ module vga_top(
 	output Ca, Cb, Cc, Cd, Ce, Cf, Cg, Dp,
 	
 	output QuadSpiFlashCS,
+	output QSPI_SCLK,
+	output QSPI_DQ0,
+	input  QSPI_DQ1,
 
 	// For audio port
 	output AUD_PWM,
@@ -66,8 +69,8 @@ module vga_top(
 		.clk(ClkPort),
 		.srst(BtnC),
 
-		.din(uart_data),
-		.wr_en(uart_valid),
+		.din(flash_data),
+		.wr_en(flash_valid),
 
 		.rd_en(fifo_rd_en),
 		.dout(fifo_dout),
@@ -86,7 +89,7 @@ module vga_top(
 	assign vgaB = rgb[3  : 0];
 	
 	// disable memory port
-	assign {QuadSpiFlashCS} = 1'b1;
+	// assign {QuadSpiFlashCS} = 1'b1;
 
 	wire audio_signal;
 
@@ -104,17 +107,24 @@ module vga_top(
 	assign AUD_PWM = audio_signal;
 	assign AUD_SD  = 1'b1;
 
-	assign Ld0 = UART_TXD_IN;  // raw signal
-	assign Ld1 = uart_valid;   // decoded byte
+	assign Ld0 = fifo_empty;
+	assign Ld1 = fifo_full;
 
-	wire [7:0] uart_data;
-	wire uart_valid;
+	wire [7:0] flash_data;
+	wire flash_valid;
 
-	uart_rx uart_inst (
+	spi_flash_reader flash_reader (
 		.clk(ClkPort),
-		.rx(UART_TXD_IN),
-		.data(uart_data),
-		.valid(uart_valid)
+		.reset(BtnC),
+
+		.cs(QuadSpiFlashCS),
+		.sclk(QSPI_SCLK),
+		.mosi(QSPI_DQ0),
+		.miso(QSPI_DQ1),
+
+		.data_out(flash_data),
+		.data_valid(flash_valid),
+		.fifo_full(fifo_full)
 	);
 
 endmodule
