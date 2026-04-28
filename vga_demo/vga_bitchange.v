@@ -36,23 +36,27 @@ module vga_bitchange(
     reg [31:0] game_time_ms;
 	reg [16:0] ms_counter;
     reg game_running;
-    reg prev_game_start;
 
     always @(posedge clk) begin
         if (reset) begin
             game_time_ms <= 0;
             ms_counter <= 0;
             game_running <= 0;
-            prev_game_start <= 0;
         end else begin
-            prev_game_start <= game_start;
             if (gameOver)
                 game_running <= 0;
-            else if (game_start && !prev_game_start) begin
+            else if (game_start) begin
+                // switch ON = game runs
+                if (!game_running) begin
+                    game_time_ms <= 0;
+                    ms_counter <= 0;
+                end
                 game_running <= 1;
-                game_time_ms <= 0;
-                ms_counter <= 0;
-            end else if (game_running) begin
+            end else begin
+                game_running <= 0;
+            end
+
+            if (game_running) begin
                 if (ms_counter >= MS_DIVIDER - 1) begin
                     ms_counter <= 0;
                     game_time_ms <= game_time_ms + 1;

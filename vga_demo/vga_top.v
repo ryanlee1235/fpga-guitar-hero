@@ -3,6 +3,7 @@
 module vga_top(
 	input ClkPort,
 	input BtnC, BtnU, BtnL, BtnD, BtnR,
+	input Sw0,
 	output Ld0, Ld1,
 	output hSync, vSync,
 	output [3:0] vgaR, vgaG, vgaB,
@@ -34,7 +35,7 @@ module vga_top(
 	display_controller dc(.clk(ClkPort), .hSync(hSync), .vSync(vSync), .bright(bright), .hCount(hc), .vCount(vc));
 
 	vga_bitchange vbc(
-		.clk(ClkPort), .reset(reset), .bright(bright), .game_start(BtnC),
+		.clk(ClkPort), .reset(reset), .bright(bright), .game_start(Sw0),
 		.btnL(BtnL), .btnD(BtnD), .btnU(BtnU), .btnR(BtnR),
 		.hCount(hc), .vCount(vc), .rgb(rgb),
 		.score(score), .comboCount(comboCount), .multiplier(multiplier),
