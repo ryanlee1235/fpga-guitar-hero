@@ -16,8 +16,6 @@ module vga_bitchange(
     output game_running_dbg
 );
 
-    assign game_running_dbg = game_running;
-
     parameter BLACK = 12'b0000_0000_0000;
     parameter WHITE = 12'b1111_1111_1111;
     parameter RED   = 12'b1111_0000_0000;
@@ -36,6 +34,7 @@ module vga_bitchange(
     reg [31:0] game_time_ms;
 	reg [16:0] ms_counter;
     reg game_running;
+    assign game_running_dbg = game_running;
 
     always @(posedge clk) begin
         if (reset) begin
@@ -116,6 +115,10 @@ module vga_bitchange(
     endfunction
 
     // find hittable note in white zone
+    // Note is hittable when any part of it overlaps the white zone
+    // White zone is 75 pixels tall (400-475), note is 40 pixels tall
+    // So note top can be from (400 - 40) to 475 for overlap = 360 to 475
+    // But we want the note to be clearly visible in zone, so use 380 to 455
     function [2:0] find_hittable;
         input [3:0] active;
         input [9:0] y0, y1, y2, y3;
@@ -124,19 +127,19 @@ module vga_bitchange(
         begin
             best = 4;
             best_y = 0;
-            if (active[0] && y0 >= WHITE_ZONE_Y && y0 <= WHITE_ZONE_Y + 35 && y0 > best_y) begin
+            if (active[0] && y0 >= WHITE_ZONE_Y - 20 && y0 <= WHITE_ZONE_Y + 55 && y0 > best_y) begin
                 best = 0;
                 best_y = y0;
             end
-            if (active[1] && y1 >= WHITE_ZONE_Y && y1 <= WHITE_ZONE_Y + 35 && y1 > best_y) begin
+            if (active[1] && y1 >= WHITE_ZONE_Y - 20 && y1 <= WHITE_ZONE_Y + 55 && y1 > best_y) begin
                 best = 1;
                 best_y = y1;
             end
-            if (active[2] && y2 >= WHITE_ZONE_Y && y2 <= WHITE_ZONE_Y + 35 && y2 > best_y) begin
+            if (active[2] && y2 >= WHITE_ZONE_Y - 20 && y2 <= WHITE_ZONE_Y + 55 && y2 > best_y) begin
                 best = 2;
                 best_y = y2;
             end
-            if (active[3] && y3 >= WHITE_ZONE_Y && y3 <= WHITE_ZONE_Y + 35 && y3 > best_y) begin
+            if (active[3] && y3 >= WHITE_ZONE_Y - 20 && y3 <= WHITE_ZONE_Y + 55 && y3 > best_y) begin
                 best = 3;
                 best_y = y3;
             end
@@ -145,11 +148,23 @@ module vga_bitchange(
     endfunction
 
     reg [2:0] free_slot, hit_slot;
+
+    // Button synchronization (2-stage) to prevent metastability
+    reg btnL_sync1 = 0, btnL_sync2 = 0, btnD_sync1 = 0, btnD_sync2 = 0;
+    reg btnU_sync1 = 0, btnU_sync2 = 0, btnR_sync1 = 0, btnR_sync2 = 0;
     reg prev_btnL, prev_btnD, prev_btnU, prev_btnR;
-    wire btnL_press = btnL && !prev_btnL;
-    wire btnD_press = btnD && !prev_btnD;
-    wire btnU_press = btnU && !prev_btnU;
-    wire btnR_press = btnR && !prev_btnR;
+
+    always @(posedge clk) begin
+        btnL_sync1 <= btnL; btnL_sync2 <= btnL_sync1;
+        btnD_sync1 <= btnD; btnD_sync2 <= btnD_sync1;
+        btnU_sync1 <= btnU; btnU_sync2 <= btnU_sync1;
+        btnR_sync1 <= btnR; btnR_sync2 <= btnR_sync1;
+    end
+
+    wire btnL_press = btnL_sync2 && !prev_btnL;
+    wire btnD_press = btnD_sync2 && !prev_btnD;
+    wire btnU_press = btnU_sync2 && !prev_btnU;
+    wire btnR_press = btnR_sync2 && !prev_btnR;
 
     integer i;
 
@@ -171,10 +186,10 @@ module vga_bitchange(
             missCount <= 0;
             gameOver <= 0;
         end else begin
-            prev_btnL <= btnL;
-            prev_btnD <= btnD;
-            prev_btnU <= btnU;
-            prev_btnR <= btnR;
+            prev_btnL <= btnL_sync2;
+            prev_btnD <= btnD_sync2;
+            prev_btnU <= btnU_sync2;
+            prev_btnR <= btnR_sync2;
             rom_addr <= next_note_idx;
 
             if (!game_running && !gameOver) begin
@@ -321,7 +336,7 @@ module vga_bitchange(
                 else if (comboCount >= 10) multiplier <= 2;
                 else multiplier <= 1;
 
-                if (missCount >= 10) gameOver <= 1;
+                if (missCount >= 30) gameOver <= 1;
             end
         end
     end
